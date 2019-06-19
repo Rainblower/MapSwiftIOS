@@ -14,6 +14,7 @@
 		10092FF322BA32F4004499AB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 10092FF122BA32F4004499AB /* LaunchScreen.storyboard */; };
 		10092FFE22BA32F4004499AB /* MapSwiftIOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10092FFD22BA32F4004499AB /* MapSwiftIOSTests.swift */; };
 		1009300922BA32F4004499AB /* MapSwiftIOSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1009300822BA32F4004499AB /* MapSwiftIOSUITests.swift */; };
+		1009301822BA330C004499AB /* Map.xd in Resources */ = {isa = PBXBuildFile; fileRef = 1009301722BA330C004499AB /* Map.xd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		1009300422BA32F4004499AB /* MapSwiftIOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MapSwiftIOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1009300822BA32F4004499AB /* MapSwiftIOSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapSwiftIOSUITests.swift; sourceTree = "<group>"; };
 		1009300A22BA32F4004499AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1009301722BA330C004499AB /* Map.xd */ = {isa = PBXFileReference; lastKnownFileType = file; path = Map.xd; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 		10092FE722BA32F4004499AB /* MapSwiftIOS */ = {
 			isa = PBXGroup;
 			children = (
+				1009301622BA32FD004499AB /* Resources */,
 				10092FE822BA32F4004499AB /* AppDelegate.swift */,
 				10092FEA22BA32F4004499AB /* ViewController.swift */,
 				10092FEC22BA32F4004499AB /* Main.storyboard */,
@@ -123,6 +126,14 @@
 				1009300A22BA32F4004499AB /* Info.plist */,
 			);
 			path = MapSwiftIOSUITests;
+			sourceTree = "<group>";
+		};
+		1009301622BA32FD004499AB /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1009301722BA330C004499AB /* Map.xd */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -231,6 +242,7 @@
 			files = (
 				10092FF322BA32F4004499AB /* LaunchScreen.storyboard in Resources */,
 				10092FF022BA32F4004499AB /* Assets.xcassets in Resources */,
+				1009301822BA330C004499AB /* Map.xd in Resources */,
 				10092FEE22BA32F4004499AB /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
