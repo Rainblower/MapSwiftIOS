@@ -8,25 +8,21 @@
 
 import UIKit
 import MapKit
+import Alamofire
+import RealmSwift
+import SwiftyJSON
 import Contacts
 
 class ViewController: UIViewController {
-
-    @IBOutlet weak var mapView: MKMapView!
     
+    @IBOutlet weak var mapView: MKMapView!
     var locationManager = CLLocationManager()
     
     var userLocation: CLLocation!
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        var mapItems: [MapItem] = []
-        let mapItem = MapItem(title: "kek", coord: CLLocationCoordinate2D(latitude: 55, longitude: 37))
-        let mapItem1 = MapItem(title: "lol", coord: CLLocationCoordinate2D(latitude: 55, longitude: 37.2))
-
-        mapItems.append(mapItem)
-        mapItems.append(mapItem1)
         
         mapView.delegate = self
         
@@ -39,23 +35,48 @@ class ViewController: UIViewController {
             locationManager.startUpdatingLocation()
         }
         
-        
-        for item in mapItems {
-            let annotation = MKAnnotationView()
-            let anno = MKPointAnnotation()
-            anno.coordinate = item.coord
-            anno.title = item.title
-            annotation.annotation = anno
-
-            annotation.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
-            annotation.image = UIImage(named: "kek")
-            mapView.addAnnotation(annotation.annotation!)
-            
-        }
-        // Do any additional setup after loading the view.
+        fetchData()
     }
+    
+    func fetchData() {
+        guard let url = URL(string: "http://cars.areas.su/arts") else { return }
+        
+        Alamofire.request(url, method: .get).validate().responseJSON{ (response) in
+            switch response.result {
+            case .success(_):
+                guard let data = response.data else { return }
 
+                do {
+                    let arts = try JSONDecoder().decode([Art].self, from: data)
+                    
+                    let realm = try! Realm()
+                    
+                    try realm.write {
+                        realm.add(arts,update: .modified)
+                    }
+                    
+                    self.addAnntotation(arts: realm.objects(Art.self))
+                } catch {
+                    print(error)
+                }
+            case .failure(let error):
+                print(error)
+            }
+        }
+    }
+    
+    func addAnntotation(arts: Results<Art>) {
+        for art in arts {
+            let annotation = CustomMKPointAnnotation()
 
+            annotation.coordinate = CLLocationCoordinate2D(latitude: CLLocationDegrees(Double(art.lat)!), longitude: CLLocationDegrees(Double(art.long)!))
+            annotation.title = art.title
+            annotation.subtitle  = art.subTitle
+            annotation.image = art.image
+            
+            self.mapView.addAnnotation(annotation)
+        }
+    }
 }
 
 extension ViewController: MKMapViewDelegate, CLLocationManagerDelegate {
@@ -65,18 +86,21 @@ extension ViewController: MKMapViewDelegate, CLLocationManagerDelegate {
         
         userLocation = locations.last
         
-       
-        let region = MKCoordinateRegion(center: userLocation!.coordinate, latitudinalMeters: 10000, longitudinalMeters: 10000)
-            mapView.setRegion(region, animated: true)
+        
+        let region = MKCoordinateRegion(center: userLocation!.coordinate, latitudinalMeters: 50000, longitudinalMeters: 50000)
+        mapView.setRegion(region, animated: true)
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        
+        mapView.removeOverlays(mapView.overlays)
+        
         let request = MKDirections.Request()
         
         request.source = MKMapItem(placemark: MKPlacemark(coordinate: userLocation.coordinate))
         request.destination = MKMapItem(placemark: MKPlacemark(coordinate: view.annotation!.coordinate))
         request.requestsAlternateRoutes = true
-        request.transportType = .automobile
+        request.transportType = .walking
         
         let direction = MKDirections(request: request)
         direction.calculate { (response, error) in
@@ -112,44 +136,68 @@ extension ViewController: MKMapViewDelegate, CLLocationManagerDelegate {
         
         let identifier = "marker"
         var view: MKMarkerAnnotationView
-        // 4
-        if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
-            as? MKMarkerAnnotationView {
+        guard let anno = annotation as? CustomMKPointAnnotation else { return nil}
+        
+        
+        if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier){
             dequeuedView.annotation = annotation
-            view = dequeuedView
+            view = dequeuedView as! MKMarkerAnnotationView
         } else {
-            // 5
+            
             view = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             
             view.canShowCallout = true
             view.calloutOffset = CGPoint(x: -5, y: 5)
-            let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 25, height: 25))
+
+            let imageView = UIImageView(frame: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 200, height: 200)))
             
-            let image = UIImage(named: "kek")
-            UIGraphicsBeginImageContext(CGSize(width: 25, height: 25))
-            imageView.image = image
-            imageView.image?.draw(in: CGRect(x: 0, y: 0, width: 25, height: 25))
-            imageView.image = UIGraphicsGetImageFromCurrentImageContext()
-            view.titleVisibility = .hidden
-            view.leftCalloutAccessoryView = imageView
-            view.detailCalloutAccessoryView = imageView
-            view.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
+            if let url = URL(string: anno.image) {
+                  do {
+                let data = try Data(contentsOf: url)
+                
+                let image = UIImage(data: data)
+                    view.leftCalloutAccessoryView = imageView
+                imageView.image = image
+                  } catch {
+                    print(error)
+                }
+            }
+            
+          
+                
+                
+                
+                
+//
+                
+                let detailLabel = UILabel()
+                detailLabel.numberOfLines = 0
+                detailLabel.font = detailLabel.font.withSize(12)
+                detailLabel.text = anno.subtitle
+                view.detailCalloutAccessoryView = detailLabel
+
+//                let vw = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 400))
+//                vw.backgroundColor = .black
+//                vw.addSubview(textView)
+//                view.detailCalloutAccessoryView = imageView
+                
+            
         }
         return view
     }
     
-   
     
-//    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
-//        let location = view.annotation
-//
-//    }
+    
+    //    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+    //        let location = view.annotation
+    //
+    //    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
 }
 
-extension MKAnnotation {
+extension MKPointAnnotation {
    
 }
