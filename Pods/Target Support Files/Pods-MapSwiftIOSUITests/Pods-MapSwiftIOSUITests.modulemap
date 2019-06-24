@@ -1,0 +1,6 @@
+framework module Pods_MapSwiftIOSUITests {
+  umbrella header "Pods-MapSwiftIOSUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
